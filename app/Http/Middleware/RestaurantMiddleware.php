@@ -34,39 +34,58 @@ use Illuminate\Support\Facades\Auth;
 
 class RestaurantMiddleware
 {
-    public function handle(Request $request, Closure $next): Response
+    // public function handle(Request $request, Closure $next): Response
+    // {
+    //     // Check if user is logged in using restaurant guard
+    //     if (!Auth::guard('restaurant')->check()) {
+    //         if ($request->expectsJson() || $request->is('api/*')) {
+    //             return response()->json([
+    //                 'success' => false,
+    //                 'message' => 'Unauthorized. Please login as restaurant owner.',
+    //             ], 401);
+    //         }
+
+    //         // Store intended URL if it's not the login page itself
+    //         if (!$request->is('restaurant/login')) {
+    //             session()->put('url.intended', url()->current());
+    //         }
+
+    //         return redirect()->route('restaurant.login')
+    //             ->with('error', 'Please login as restaurant owner to access this section.');
+    //     }
+
+    //     // Check if logged in user has restaurant_owner role
+    //     if (Auth::guard('restaurant')->user()->role !== 'restaurant_owner') {
+    //         if ($request->expectsJson() || $request->is('api/*')) {
+    //             return response()->json([
+    //                 'success' => false,
+    //                 'message' => 'Unauthorized. Restaurant access only.',
+    //             ], 403);
+    //         }
+
+    //         Auth::guard('restaurant')->logout();
+    //         return redirect()->route('restaurant.login')
+    //             ->with('error', 'This section is only accessible to restaurant owners.');
+    //     }
+
+    //     return $next($request);
+    // }
+
+    public function handle(Request $request, Closure $next)
     {
-        // Check if user is logged in using restaurant guard
         if (!Auth::guard('restaurant')->check()) {
-            if ($request->expectsJson() || $request->is('api/*')) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Unauthorized. Please login as restaurant owner.',
-                ], 401);
+            if ($request->expectsJson()) {
+                return response()->json(['message' => 'Unauthorized'], 403);
             }
-
-            // Store intended URL if it's not the login page itself
-            if (!$request->is('restaurant/login')) {
-                session()->put('url.intended', url()->current());
-            }
-
-            return redirect()->route('restaurant.login')
-                ->with('error', 'Please login as restaurant owner to access this section.');
+            return redirect()->route('restaurant.login');
         }
 
-        // Check if logged in user has restaurant_owner role
-        if (Auth::guard('restaurant')->user()->role !== 'restaurant_owner') {
-            if ($request->expectsJson() || $request->is('api/*')) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Unauthorized. Restaurant access only.',
-                ], 403);
-            }
-
-            Auth::guard('restaurant')->logout();
-            return redirect()->route('restaurant.login')
-                ->with('error', 'This section is only accessible to restaurant owners.');
-        }
+        // $restaurant = Auth::guard('restaurant')->user();
+        // if ($restaurant->status !== 'active') {
+        //     Auth::guard('restaurant')->logout();
+        //     return redirect()->route('restaurant.login')
+        //         ->with('error', 'Your restaurant account is not active.');
+        // }
 
         return $next($request);
     }

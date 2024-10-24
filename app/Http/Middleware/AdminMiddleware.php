@@ -16,23 +16,27 @@ class AdminMiddleware
      */
     public function handle(Request $request, Closure $next): Response
     {
+
+        if (!Auth::guard('web')->check() || Auth::user()->role !== 'admin') {
+            if ($request->expectsJson()) {
+                return response()->json(['message' => 'Unauthorized'], 403);
+            }
+            return redirect()->route('admin.login');
+        }
+        return $next($request);
+
+
         // if (Auth::check() && Auth::user()->role === 'admin') {
         //     return $next($request);
         // }
+        //  // Check if it's an API request
+        // if ($request->expectsJson() || $request->is('api/*')) {
+        //     return response()->json([
+        //         'success' => false,
+        //         'message' => 'Unauthorized. This endpoint is only accessible to administrators.',
+        //     ], 403);
+        // }
 
-        // abort(403, 'Unauthorized access.');
-
-        if (Auth::check() && Auth::user()->role === 'admin') {
-            return $next($request);
-        }
-         // Check if it's an API request
-        if ($request->expectsJson() || $request->is('api/*')) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Unauthorized. This endpoint is only accessible to administrators.',
-            ], 403);
-        }
-        
-        abort(403, 'This section is only accessible to administrators.');
+        // abort(403, 'This section is only accessible to administrators.');
     }
 }
